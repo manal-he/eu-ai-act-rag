@@ -1,0 +1,23 @@
+# gcloud builds submit --config deploy/cloudrun/cloudbuild.yaml \
+#   --substitutions=_REGION=YOUR_REGION,_REPO=YOUR_REPO .
+substitutions:
+  _REGION: YOUR_REGION
+  _REPO: YOUR_REPO
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args: ["build", "-f", "docker/api.Dockerfile",
+           "-t", "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/eu-ai-act-rag-api:$SHORT_SHA", "."]
+  - name: gcr.io/cloud-builders/docker
+    args: ["build", "-f", "docker/ui.Dockerfile",
+           "-t", "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/eu-ai-act-rag-ui:$SHORT_SHA", "."]
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gcloud
+    args: ["run", "deploy", "eu-ai-act-rag-api",
+           "--image", "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/eu-ai-act-rag-api:$SHORT_SHA",
+           "--region", "${_REGION}",
+           "--service-account", "rag-api@$PROJECT_ID.iam.gserviceaccount.com",
+           "--set-env-vars", "LLM_PROVIDER=gemini,EMBEDDING_PROVIDER=vertex,GOOGLE_CLOUD_PROJECT=$PROJECT_ID,GOOGLE_CLOUD_LOCATION=${_REGION}",
+           "--no-allow-unauthenticated"]
+images:
+  - "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/eu-ai-act-rag-api:$SHORT_SHA"
+  - "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/eu-ai-act-rag-ui:$SHORT_SHA"

@@ -1,0 +1,56 @@
+# --- secrets & credentials ---------------------------------------------------------------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*service-account*.json
+*-sa.json
+credentials*.json
+application_default_credentials.json
+gha-creds-*.json
+
+# --- data: never commit the downloaded corpora or derived indexes -------------------------
+data/raw/
+data/processed/
+data/cache/
+*.db
+*.sqlite
+*.sqlite3
+*.npz
+*.parquet
+evals/results/**/generation_rows.json
+
+# --- python -------------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+build/
+dist/
+
+# --- node / ui ----------------------------------------------------------------------------
+node_modules/
+ui/dist/
+.next/
+*.tsbuildinfo
+npm-debug.log*
+
+# --- editors / os -------------------------------------------------------------------------
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# --- logs / local tooling -----------------------------------------------------------------
+*.log
+.coverage.*

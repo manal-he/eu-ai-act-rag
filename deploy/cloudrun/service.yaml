@@ -1,0 +1,51 @@
+# Declarative Cloud Run service. Replace YOUR_* placeholders before use.
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: eu-ai-act-rag-api
+  annotations:
+    run.googleapis.com/ingress: internal-and-cloud-load-balancing
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/minScale: "0"
+        autoscaling.knative.dev/maxScale: "3"
+    spec:
+      serviceAccountName: rag-api@YOUR_PROJECT_ID.iam.gserviceaccount.com
+      containerConcurrency: 20
+      timeoutSeconds: 300
+      containers:
+        - image: YOUR_REGION-docker.pkg.dev/YOUR_PROJECT_ID/YOUR_REPO/eu-ai-act-rag-api:latest
+          ports:
+            - containerPort: 8080
+          resources:
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          env:
+            - name: LLM_PROVIDER
+              value: gemini
+            - name: EMBEDDING_PROVIDER
+              value: vertex
+            - name: RETRIEVER
+              value: hybrid
+            - name: GOOGLE_CLOUD_PROJECT
+              value: YOUR_PROJECT_ID
+            - name: GOOGLE_CLOUD_LOCATION
+              value: YOUR_REGION
+            - name: ANTHROPIC_API_KEY  # optional, only if LLM_PROVIDER=anthropic or LLM judge
+              valueFrom:
+                secretKeyRef:
+                  name: anthropic-api-key
+                  key: latest
+            - name: DATABASE_URL  # optional, with VECTOR_STORE=pgvector
+              valueFrom:
+                secretKeyRef:
+                  name: rag-database-url
+                  key: latest
+          startupProbe:
+            httpGet:
+              path: /health
+            periodSeconds: 5
+            failureThreshold: 24
